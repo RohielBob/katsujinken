@@ -4,7 +4,7 @@
    ============================================================ */
 const I = 'img/p/';
 window.PORTFOLIO = {
-  email: "",   // ← adresse de contact de l'équipe à ajouter
+  email: "katsujinkeng1@gmail.com",   // ← adresse de contact de l'équipe à ajouter
   membres: [
     { id:"angelo", nom:"Angelo Kalala Malu", role:"Gestion de projet et systèmes", photo:"img/angelo.jpg",
       bio:"Coordonne le travail d'équipe, planifie et suit l'avancement. Chef de projet du PBL d'anglais, secrétaire en PBL 4 EEE.",
@@ -107,6 +107,7 @@ window.PORTFOLIO = {
       images:[["pbl3_eee/01_wbs_enceinte_bluetooth.jpg","WBS de l'enceinte Bluetooth"],["pbl3_eee/02_bom_amplificateur.png","BOM de l'ampli"],["pbl3_eee/03_incoherences_et_ameliorations.jpg","Incohérences relevées et pistes d'amélioration"]],
       equipe:"all", lead:"rohiel" },
     { id:"statique", n:"03", titre:"Stabilité des navires (compagnie HMS)", sous:"PBL de statique des fluides", dom:"ESE", cat:"Mécanique", periode:"oct. 2026", type:"Essais sur maquette",
+      cover:I+"statique/cover.svg", contain:true,
       resume:"Comprendre pourquoi deux navires ont coulé, l'un au port et l'autre dans une tempête, avec la théorie et des essais sur maquette.",
       probleme:"La compagnie fictive HMS a perdu deux navires. Il faut expliquer les deux naufrages.",
       fait:["Plan d'action : pression hydrostatique, Archimède, points G, B et M, GM, carène liquide","Maquette à coque rectangulaire, mesure d'angle au smartphone avec phyphox","Calculer avant de mesurer, puis essai d'inclinaison : GM = p·d / (Δ·tan φ)","Une fiche protocole par essai, une seule variable à la fois, au moins 3 répétitions","Fiche de relevés : flottabilité, stabilité, grille de diagnostic des deux naufrages"],

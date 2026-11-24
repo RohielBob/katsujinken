@@ -192,9 +192,9 @@
   $('#facts').innerHTML = facts.map(([n, t]) => `<div><div class="v num" data-count="${n}">${n.toLocaleString('fr-FR')}</div><p>${esc(t)}</p></div>`).join('');
 
   /* ================= Projets : pile de cartes ================= */
-  const featured = ['imoca', 'bateau', 'pbl3eee', 'pbl4eee', 'pbl5meo', 'afyabora'];
-  const colors = ['lime', 'violet', 'ink', 'sun', 'violet', 'coral'];
-  const caps = { bateau: 'GM > 0 : il tient debout !', imoca: 'notre IMOCA hybride', afyabora: 'lancée le 14 oct.', pbl3eee: 'la WBS de l\'enceinte', pbl4eee: 'système 1 en 3D', pbl5meo: 'la route des 9 outils' };
+  const featured = ['imoca', 'bateau', 'statique', 'pbl3eee', 'pbl4eee', 'pbl5meo', 'afyabora'];
+  const colors = ['lime', 'violet', 'coral', 'ink', 'sun', 'violet', 'lime'];
+  const caps = { bateau: 'GM > 0 : il tient debout !', imoca: 'notre IMOCA hybride', statique: 'au port ou en tempête ?', afyabora: 'lancée le 14 oct.', pbl3eee: 'la WBS de l\'enceinte', pbl4eee: 'système 1 en 3D', pbl5meo: 'la route des 9 outils' };
   const stack = $('#stack');
   stack.innerHTML = featured.map((id, i) => {
     const p = pById[id];
@@ -299,7 +299,7 @@
   const toast = $('#toast');
   const say = msg => { toast.textContent = msg; toast.classList.add('on'); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove('on'), 1800); };
   if (D.email) {
-    $('#mailBox').innerHTML = `<button class="magnet" id="copyBtn" type="button" data-cursor="Copier">Copier notre e-mail</button><p class="mono" style="margin-top:18px;font-size:16px;user-select:all" id="mailText">${esc(D.email)}</p>`;
+    $('#mailBox').innerHTML = `<div class="mail-row"><a class="mail-link" id="mailText" href="mailto:${esc(D.email)}">${esc(D.email)}</a><button class="magnet small" id="copyBtn" type="button" data-cursor="Copier">Copier</button></div>`;
     $('#copyBtn').addEventListener('click', () => {
       const fb = () => { const r = document.createRange(); r.selectNodeContents($('#mailText')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); say('Adresse sélectionnée, faites Ctrl+C'); };
       try { navigator.clipboard.writeText(D.email).then(() => say('Adresse copiée'), fb); } catch (e) { fb(); }
