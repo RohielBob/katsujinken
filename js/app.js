@@ -11,73 +11,122 @@
   const INK = '#14112b';
 
   /* ================= Équipage dessiné ================= */
+  // Teintes reprises des photos ; coiffures texturées (boucles), regard qui suit la souris.
   const LOOK = {
-    angelo:     { skin: '#8a5a3c', hair: 'short', top: '#2b3a8c', cut: 'jacket', bg: 'lime' },
-    rohiel:     { skin: '#6a3f28', hair: 'high', top: '#a9b4ba', cut: 'polo', acc: 'headphones', bg: 'coral' },
-    arnold:     { skin: '#7a4b30', hair: 'short', top: '#8a5a2b', cut: 'bands', bg: 'sun' },
-    ben:        { skin: '#6b3f27', hair: 'short', top: '#a8d8ff', cut: 'vest', acc: 'hardhat', bg: 'violet' },
-    benjamin:   { skin: '#5a3420', hair: 'short', top: '#c9a46a', cut: 'stripes', bg: 'lime' },
-    chancelier: { skin: '#6e4330', hair: 'afro', top: '#ffffff', cut: 'tie', bg: 'coral' },
-    isaa:       { skin: '#7c4a30', hair: 'bun', top: '#1f1b2e', cut: 'sweater', acc: 'earrings', bg: 'sun' },
-    severina:   { skin: '#5d3622', hair: 'bun', top: '#2a2438', cut: 'tee', acc: 'glasses', bg: 'violet' }
+    angelo:     { skin: '#7b4b2e', hair: 'afro', top: '#2b3a8c', cut: 'jacket', face: 'mustache', bg: 'lime', say: 'Le planning, c\'est moi.' },
+    rohiel:     { skin: '#6e4026', hair: 'fade', top: '#a9b4ba', cut: 'polo', acc: 'headphones', face: 'mustache', bg: 'coral', say: 'J\'écris le code.' },
+    arnold:     { skin: '#8a5634', hair: 'short', top: '#8a5a2b', cut: 'bands', bg: 'sun', say: 'Méca et électronique !' },
+    ben:        { skin: '#5e3620', hair: 'short', top: '#a8d8ff', cut: 'vest', acc: 'hardhat', bg: 'violet', say: 'Direction le chantier.' },
+    benjamin:   { skin: '#4f2c1a', hair: 'short', top: '#c9a46a', cut: 'stripes', face: 'goatee', bg: 'lime', say: 'Présent sur tous les PBL.' },
+    chancelier: { skin: '#5a321e', hair: 'full', top: '#ffffff', cut: 'tie', bg: 'coral', say: 'CAO, certifié.' },
+    isaa:       { skin: '#8b5535', hair: 'bun', top: '#1f1b2e', cut: 'sweater', acc: 'earrings', bg: 'sun', say: 'On s\'organise ?' },
+    severina:   { skin: '#4a2a1a', hair: 'bun', top: '#2a2438', cut: 'tee', acc: 'glasses', bg: 'violet', say: 'Je prends les notes.' }
   };
+  function shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16), f = c => clamp(c + amt, 0, 255);
+    return '#' + [f(n >> 16), f((n >> 8) & 255), f(n & 255)].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+  }
+  function rng(seed) { let a = 0; for (const c of seed) a = (a * 31 + c.charCodeAt(0)) >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  // boucles posées le long d'un arc d'ellipse
+  function curls(cx, cy, rx, ry, a0, a1, n, r, fill, rand, stroke = true) {
+    let out = '';
+    for (let i = 0; i < n; i++) {
+      const t = (a0 + (a1 - a0) * i / (n - 1)) * Math.PI / 180;
+      const rr = r * (.8 + rand() * .45);
+      out += `<circle cx="${(cx + rx * Math.cos(t)).toFixed(1)}" cy="${(cy + ry * Math.sin(t)).toFixed(1)}" r="${rr.toFixed(1)}" fill="${fill}"${stroke ? ` stroke="${INK}" stroke-width="2.5"` : ''}/>`;
+    }
+    return out;
+  }
+  function texture(cx, cy, rx, ry, n, color, rand) {
+    let out = '';
+    for (let i = 0; i < n; i++) {
+      const a = rand() * Math.PI * 2, d = Math.sqrt(rand());
+      out += `<circle cx="${(cx + Math.cos(a) * rx * d).toFixed(1)}" cy="${(cy + Math.sin(a) * ry * d).toFixed(1)}" r="${(1.4 + rand() * 1.6).toFixed(1)}" fill="${color}"/>`;
+    }
+    return out;
+  }
+  let uid = 0;
   const S3 = `stroke="${INK}" stroke-width="3" stroke-linejoin="round"`;
   function avatar(id) {
-    const o = LOOK[id], u = 'a' + id, hair = '#1b1410';
+    const o = LOOK[id], u = `av${id}${uid++}`, rand = rng(id);
+    const hair = '#17110d', hairHi = '#3d2c22', skinD = shade(o.skin, -22), skinL = shade(o.skin, 26), lip = shade(o.skin, -40);
     const body = 'M24 232 C24 184 56 160 100 160 C144 160 176 184 176 232 Z';
-    let back = '', front = '', top = '', acc = '';
-    if (o.hair === 'afro') back = `<circle cx="100" cy="72" r="52" fill="${hair}" ${S3}/>`;
-    if (o.hair === 'bun') back = `<circle cx="100" cy="44" r="17" fill="${hair}" ${S3}/>`;
-    const caps = {
-      short: 'M59 94 C56 50 144 50 141 94 C134 74 118 66 100 66 C82 66 66 74 59 94Z',
-      afro: 'M58 96 C52 52 148 52 142 96 C134 76 118 70 100 70 C82 70 66 76 58 96Z',
-      high: 'M60 90 C60 74 64 46 70 38 Q100 26 130 38 C136 46 140 74 140 90 C132 72 118 64 100 64 C82 64 68 72 60 90Z',
-      bun: 'M59 96 C56 56 144 56 141 96 C132 74 116 64 100 64 C84 64 68 74 59 96Z'
-    };
-    front = `<path d="${caps[o.hair]}" fill="${hair}" ${S3}/>`;
-    // vêtements
+    let back = '', front = '', top = '', acc = '', fh = '';
+    // ---- cheveux ----
+    if (o.hair === 'afro') {
+      back = `<ellipse cx="100" cy="64" rx="47" ry="38" fill="${hair}"/>${curls(100, 64, 47, 38, 0, 360, 30, 9.5, hair, rand)}`;
+      front = `<path d="M58 96 C54 66 74 50 100 50 C126 50 146 66 142 96 C136 82 126 74 116 72 C104 76 94 76 84 72 C74 74 64 82 58 96Z" fill="${hair}"/>${texture(100, 58, 40, 22, 26, hairHi, rand)}`;
+    }
+    if (o.hair === 'short' || o.hair === 'full') {
+      const ry = o.hair === 'full' ? 36 : 31, rr = o.hair === 'full' ? 8.5 : 7;
+      front = `<path d="M58 96 C54 60 74 ${74 - ry} 100 ${74 - ry} C126 ${74 - ry} 146 60 142 96 C136 80 126 72 116 70 C104 74 96 74 84 70 C74 72 64 80 58 96Z" fill="${hair}"/>
+        ${curls(100, 76, 42, ry, 186, 354, 17, rr, hair, rand)}${texture(100, 60, 34, 14, 22, hairHi, rand)}`;
+    }
+    if (o.hair === 'fade') {
+      front = `<path d="M59 96 C56 58 76 42 100 42 C124 42 144 58 141 96 L137 94 C135 80 130 73 124 70 L76 70 C70 73 65 80 63 94Z" fill="${hair}" ${S3}/>
+        <path d="M70 58 q15 -6 30 0 t30 0 M68 66 q16 -5 32 0 t32 0" fill="none" stroke="${hairHi}" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M60 96 L63 110 M140 96 L137 110" stroke="${hair}" stroke-width="5" stroke-linecap="round" opacity=".55"/>`;
+    }
+    if (o.hair === 'bun') {
+      back = `<circle cx="100" cy="40" r="17" fill="${hair}"/>${curls(100, 40, 16, 16, 0, 360, 12, 6, hair, rand)}`;
+      front = `<path d="M58 100 C54 58 76 46 100 46 C124 46 146 58 142 100 C136 78 120 66 100 66 C80 66 64 78 58 100Z" fill="${hair}" ${S3}/>
+        <path d="M72 84 C76 64 88 54 100 52 M86 72 C90 60 96 54 100 52 M128 84 C124 64 112 54 100 52 M114 72 C110 60 104 54 100 52" fill="none" stroke="${hairHi}" stroke-width="2.4" stroke-linecap="round"/>`;
+    }
+    // ---- vêtements ----
     const clip = `<clipPath id="${u}c"><path d="${body}"/></clipPath>`;
-    if (o.cut === 'jacket') top = `<path d="M86 162 L100 200 L114 162Z" fill="#fff6e5" ${S3}/><path d="M100 200 V232" stroke="#ffc83d" stroke-width="3"/>`;
-    if (o.cut === 'polo') top = `<path d="M84 160 L100 176 L90 188 L78 168Z M116 160 L100 176 L110 188 L122 168Z" fill="#c9d2d7" ${S3}/><path d="M100 176 V200" stroke="${INK}" stroke-width="3"/><circle cx="100" cy="190" r="2.5" fill="${INK}"/>`;
-    if (o.cut === 'bands') top = `<g clip-path="url(#${u}c)"><rect x="0" y="190" width="200" height="20" fill="#fff6e5"/></g><path d="M84 160 L100 176 L90 188 L78 168Z M116 160 L100 176 L110 188 L122 168Z" fill="#8a5a2b" ${S3}/>`;
+    const collar = c => `<path d="M84 160 L100 176 L90 188 L78 168Z M116 160 L100 176 L110 188 L122 168Z" fill="${c}" ${S3}/>`;
+    if (o.cut === 'jacket') top = `<path d="M86 162 L100 200 L114 162Z" fill="#fff6e5" ${S3}/><path d="M100 200 V232" stroke="#ffc83d" stroke-width="3"/><path d="M70 176 L80 232 M130 176 L120 232" stroke="#1f2b6a" stroke-width="3"/>`;
+    if (o.cut === 'polo') top = `${collar('#c9d2d7')}<path d="M80 168 l20 8 l20 -8" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M100 176 V202" stroke="${INK}" stroke-width="3"/><circle cx="100" cy="186" r="2.5" fill="${INK}"/><circle cx="100" cy="196" r="2.5" fill="${INK}"/>`;
+    if (o.cut === 'bands') top = `<g clip-path="url(#${u}c)"><rect x="0" y="186" width="200" height="22" fill="#fff6e5"/></g>${collar('#8a5a2b')}`;
     if (o.cut === 'vest') top = `<path d="M30 232 C34 196 56 172 84 164 L90 232Z M170 232 C166 196 144 172 116 164 L110 232Z" fill="#d7ff3d" ${S3}/><g clip-path="url(#${u}c)"><rect x="0" y="206" width="200" height="8" fill="#c9c9c9"/></g><path d="M86 162 L100 180 L114 162" fill="none" ${S3}/>`;
-    if (o.cut === 'stripes') top = `<g clip-path="url(#${u}c)">${[40, 64, 88, 112, 136, 160].map(x => `<rect x="${x}" y="150" width="10" height="90" fill="${INK}" opacity=".85"/>`).join('')}</g><path d="M84 160 L100 176 L90 188 L78 168Z M116 160 L100 176 L110 188 L122 168Z" fill="#c9a46a" ${S3}/>`;
+    if (o.cut === 'stripes') top = `<g clip-path="url(#${u}c)">${[40, 64, 88, 112, 136, 160].map(x => `<rect x="${x}" y="150" width="10" height="90" fill="${INK}" opacity=".85"/>`).join('')}</g>${collar('#c9a46a')}`;
     if (o.cut === 'tie') top = `<path d="M84 160 L100 174 L92 184 L80 166Z M116 160 L100 174 L108 184 L120 166Z" fill="#fff" ${S3}/><path d="M96 172 H104 L108 206 L100 222 L92 206Z" fill="${INK}"/>`;
     if (o.cut === 'sweater') top = `<path d="M84 160 L100 178 L116 160 L112 176 L100 186 L88 176Z" fill="#fff" ${S3}/><g clip-path="url(#${u}c)"><path d="M24 190 L64 170 M176 190 L136 170" stroke="#9a96a8" stroke-width="8"/></g>`;
     if (o.cut === 'tee') top = `<path d="M84 162 Q100 178 116 162" fill="none" ${S3}/>`;
-    if (o.acc === 'hardhat') acc = `<path d="M56 80 C56 36 144 36 144 80Z" fill="#fff" ${S3}/><rect x="46" y="76" width="108" height="11" rx="5.5" fill="#fff" ${S3}/><path d="M100 42 V78" stroke="${INK}" stroke-width="3"/>`;
-    if (o.acc === 'headphones') acc = `<path d="M58 100 C52 34 148 34 142 100" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><rect x="46" y="88" width="18" height="30" rx="8" fill="#ff6b4a" ${S3}/><rect x="136" y="88" width="18" height="30" rx="8" fill="#ff6b4a" ${S3}/>`;
-    if (o.acc === 'glasses') acc = `<g fill="none" ${S3}><circle cx="84" cy="64" r="11"/><circle cx="116" cy="64" r="11"/><path d="M95 64 H105"/></g>`;
-    if (o.acc === 'earrings') acc = `<path d="M60 116 l3 6 6 1 -5 4 1 6 -5 -3 -5 3 1 -6 -5 -4 6 -1z M140 116 l3 6 6 1 -5 4 1 6 -5 -3 -5 3 1 -6 -5 -4 6 -1z" fill="#ffc83d" stroke="${INK}" stroke-width="1.5"/>`;
-    const skinD = shade(o.skin, -18);
-    return `<svg class="av" viewBox="0 0 200 232" aria-hidden="true"><defs>${clip}</defs><g class="bob">
-      ${back}
-      <path d="${body}" fill="${o.top}" ${S3}/>
-      ${top}
-      <path d="M86 128 h28 v34 c-8 6 -20 6 -28 0z" fill="${skinD}" ${S3}/>
-      <ellipse cx="60" cy="102" rx="8" ry="11" fill="${o.skin}" ${S3}/><ellipse cx="140" cy="102" rx="8" ry="11" fill="${o.skin}" ${S3}/>
-      <ellipse cx="100" cy="98" rx="40" ry="45" fill="${o.skin}" ${S3}/>
-      ${front}
-      <path d="M76 88 q9 -6 17 -1 M107 87 q8 -5 17 1" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/>
-      <ellipse class="eye" cx="85" cy="101" rx="4.5" ry="5.8" fill="${INK}"/><ellipse class="eye" cx="115" cy="101" rx="4.5" ry="5.8" fill="${INK}"/>
-      <path d="M101 104 q-6 9 1 11" fill="none" stroke="${skinD}" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="76" cy="116" r="6" fill="#ff6b4a" opacity=".28"/><circle cx="124" cy="116" r="6" fill="#ff6b4a" opacity=".28"/>
-      <path d="M88 122 q12 10 24 0" fill="none" stroke="${INK}" stroke-width="3.2" stroke-linecap="round"/>
-      ${acc}
-    </g></svg>`;
-  }
-  function shade(hex, amt) {
-    const n = parseInt(hex.slice(1), 16), f = c => clamp(c + amt, 0, 255);
-    return '#' + [f(n >> 16), f((n >> 8) & 255), f(n & 255)].map(v => v.toString(16).padStart(2, '0')).join('');
+    // ---- accessoires ----
+    if (o.acc === 'hardhat') acc = `<path d="M56 80 C56 34 144 34 144 80Z" fill="#fff" ${S3}/><path d="M76 78 C76 50 86 42 100 40 M124 78 C124 50 114 42 100 40" fill="none" stroke="#e4e4e4" stroke-width="5"/><rect x="46" y="76" width="108" height="11" rx="5.5" fill="#fff" ${S3}/>`;
+    if (o.acc === 'headphones') acc = `<path d="M58 100 C52 32 148 32 142 100" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><rect x="45" y="88" width="19" height="31" rx="8" fill="#ff6b4a" ${S3}/><rect x="136" y="88" width="19" height="31" rx="8" fill="#ff6b4a" ${S3}/>`;
+    if (o.acc === 'glasses') acc = `<g fill="rgb(255 255 255 / .25)" ${S3}><rect x="72" y="56" width="22" height="16" rx="6"/><rect x="106" y="56" width="22" height="16" rx="6"/></g><path d="M94 63 H106" ${S3}/>`;
+    if (o.acc === 'earrings') acc = `<path d="M60 118 l3 6 6 1 -5 4 1 6 -5 -3 -5 3 1 -6 -5 -4 6 -1z M140 118 l3 6 6 1 -5 4 1 6 -5 -3 -5 3 1 -6 -5 -4 6 -1z" fill="#ffc83d" stroke="${INK}" stroke-width="1.5"/>`;
+    if (o.face === 'mustache') fh = `<path d="M90 117 q10 -5 20 0" fill="none" stroke="${hair}" stroke-width="3.5" stroke-linecap="round"/>`;
+    if (o.face === 'goatee') fh = `<path d="M92 117 q8 -4 16 0 M96 134 q4 6 8 0" fill="none" stroke="${hair}" stroke-width="3.5" stroke-linecap="round"/>`;
+    const eye = x => `<ellipse cx="${x}" cy="101" rx="7" ry="6" fill="#fffdf7" ${S3.replace('3"', '2.2"')}/>`;
+    const pupil = x => `<circle cx="${x}" cy="101.5" r="3.6" fill="#2a1a12"/><circle cx="${x + 1.3}" cy="100.2" r="1.2" fill="#fff"/>`;
+    const lid = x => `<ellipse class="lid" cx="${x}" cy="101" rx="7.6" ry="6.6" fill="${skinD}"/>`;
+    const blinkDelay = (-rand() * 5).toFixed(2);
+    return `<svg class="av" viewBox="0 0 200 232" aria-hidden="true"><defs>${clip}
+        <radialGradient id="${u}s" cx="42%" cy="36%" r="70%"><stop offset="0" stop-color="${skinL}"/><stop offset=".6" stop-color="${o.skin}"/><stop offset="1" stop-color="${skinD}"/></radialGradient></defs>
+      <g class="bob">
+        <g class="arm"><path d="M150 192 L154 262" stroke="${INK}" stroke-width="29" stroke-linecap="round"/><path d="M150 192 L154 262" stroke="${o.top}" stroke-width="23" stroke-linecap="round"/><circle cx="154" cy="266" r="12" fill="${o.skin}" ${S3}/></g>
+        <path d="${body}" fill="${o.top}" ${S3}/>
+        ${top}
+        <path d="M86 126 h28 v36 c-8 6 -20 6 -28 0z" fill="${skinD}" ${S3}/>
+        <g class="head" style="transform-origin:100px 150px">
+          ${back}
+          <ellipse cx="60" cy="102" rx="8" ry="11" fill="${o.skin}" ${S3}/><ellipse cx="140" cy="102" rx="8" ry="11" fill="${o.skin}" ${S3}/>
+          <path d="M60 92 C60 60 78 50 100 50 C122 50 140 60 140 92 C140 124 124 145 100 145 C76 145 60 124 60 92Z" fill="url(#${u}s)" ${S3}/>
+          ${front}
+          <path d="M75 88 q9 -7 18 -2 M107 86 q9 -5 18 2" fill="none" stroke="${hair}" stroke-width="4.5" stroke-linecap="round"/>
+          ${eye(85)}${eye(115)}
+          <g class="pupils">${pupil(85)}${pupil(115)}</g>
+          <g style="animation-delay:${blinkDelay}s">${lid(85).replace('class="lid"', `class="lid" style="animation-delay:${blinkDelay}s"`)}${lid(115).replace('class="lid"', `class="lid" style="animation-delay:${blinkDelay}s"`)}</g>
+          <path d="M97 106 q-4 8 0 10 q3 2 6 0" fill="none" stroke="${skinD}" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="74" cy="117" r="6.5" fill="#ff6b4a" opacity=".25"/><circle cx="126" cy="117" r="6.5" fill="#ff6b4a" opacity=".25"/>
+          <path d="M88 122 Q100 134 112 122 Q100 127 88 122Z" fill="${lip}" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/>
+          ${fh}
+          ${acc}
+        </g>
+      </g></svg>`;
   }
 
-  /* ================= Thème ================= */
-  const root = document.documentElement, sysDark = matchMedia('(prefers-color-scheme: dark)');
-  try { const t = localStorage.getItem('theme'); if (t === 'dark' || t === 'light') root.dataset.theme = t; } catch (e) {}
-  const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : sysDark.matches;
+  /* ================= Thème : clair par défaut ================= */
+  const root = document.documentElement;
+  try { if (localStorage.getItem('theme') === 'dark') root.dataset.theme = 'dark'; } catch (e) {}
+  const isDark = () => root.dataset.theme === 'dark';
   $('#themeBtn').addEventListener('click', () => {
     const next = isDark() ? 'light' : 'dark';
-    root.dataset.theme = next; try { localStorage.setItem('theme', next); } catch (e) {}
+    if (next === 'dark') root.dataset.theme = 'dark'; else delete root.dataset.theme;
+    try { localStorage.setItem('theme', next); } catch (e) {}
     dispatchEvent(new Event('themechange'));
   });
 
@@ -89,7 +138,7 @@
   $('#wordmark').innerHTML = [...'KATSUJINKEN'].map(c => `<span class="ch">${c}</span>`).join('');
 
   const crewOrder = ['isaa', 'angelo', 'ben', 'rohiel', 'chancelier', 'arnold', 'severina', 'benjamin'];
-  $('#crew').innerHTML = crewOrder.map((id, i) => `<button type="button" data-m="${id}" aria-label="${esc(byId[id].nom)}" data-cursor="Profil" style="--d:${i}"><span class="bubble">${esc(first(byId[id]))} !</span>${avatar(id)}</button>`).join('');
+  $('#crew').innerHTML = crewOrder.map(id => `<button type="button" data-m="${id}" aria-label="${esc(byId[id].nom)}" data-cursor="Profil"><span class="bubble">${esc(first(byId[id]))} !</span>${avatar(id)}</button>`).join('');
   document.querySelectorAll('#crew .bob').forEach((g, i) => g.style.animationDelay = (-i * .45) + 's');
 
   const STK = [
@@ -97,8 +146,10 @@
     ['Pont en H', 'violet', 2, 52, 6], ['LTspice', 'ink', 62, 6, -11], ['Titanic', 'coral', 44, 4, 4],
     ['SolidWorks', 'violet', 88, 58, 9], ['Froude = 1,11', 'sun', 24, 9, -4]
   ];
+  // sur téléphone, les étiquettes se rangent à droite de la note manuscrite, loin du texte
+  if (innerWidth < 760) [[55, 80, -8], [60, 86, 6], [50, 92, -5]].forEach((v, i) => { STK[i][2] = v[0]; STK[i][3] = v[1]; STK[i][4] = v[2]; });
   const stickers = $('#stickers');
-  stickers.innerHTML = STK.map(([t, c, x, y, r], i) => `<div class="stk ${c}" style="left:${x}%;top:${y}%;rotate:${r}deg;animation-delay:${2 + i * .08}s" data-cursor="Tirer">${esc(t)}</div>`).join('');
+  stickers.innerHTML = STK.map(([t, c, x, y, r], i) => `<div class="stk ${c}" style="left:${x}%;top:${y}%;rotate:${r}deg" data-cursor="Tirer">${esc(t)}</div>`).join('');
   let z = 10;
   stickers.addEventListener('pointerdown', e => {
     const s = e.target.closest('.stk'); if (!s) return;
@@ -107,8 +158,9 @@
     const ox = e.clientX - r.left, oy = e.clientY - r.top;
     let lastX = e.clientX;
     const move = ev => {
-      s.style.left = ((ev.clientX - ox - host.left) / host.width * 100) + '%';
-      s.style.top = ((ev.clientY - oy - host.top) / host.height * 100) + '%';
+      const maxX = 100 - r.width / host.width * 100;
+      s.style.left = clamp((ev.clientX - ox - host.left) / host.width * 100, 0, maxX) + '%';
+      s.style.top = clamp((ev.clientY - oy - host.top) / host.height * 100, 0, 95) + '%';
       s.style.rotate = clamp((ev.clientX - lastX) * 1.4, -20, 20) + 'deg'; lastX = ev.clientX;
     };
     const up = () => { s.classList.remove('drag'); s.style.rotate = (Math.random() * 16 - 8).toFixed(1) + 'deg'; s.removeEventListener('pointermove', move); s.removeEventListener('pointerup', up); };
@@ -123,7 +175,7 @@
   let mx = 0, vel = 0, lastY = scrollY;
   addEventListener('scroll', () => { vel += (scrollY - lastY) * .25; lastY = scrollY; }, { passive: true });
 
-  /* ================= Manifeste : mots qui s'allument ================= */
+  /* ================= Manifeste ================= */
   const scrub = $('#scrub');
   [...scrub.childNodes].forEach(n => {
     if (n.nodeType === 3) {
@@ -134,7 +186,6 @@
   });
   const wds = [...scrub.querySelectorAll('.wd')];
   if (!reduce) scrub.classList.add('armed'); else scrub.querySelectorAll('.mark,.scrib').forEach(e => e.classList.add('on'));
-
   const facts = [[D.membres.length, 'membres, de la mécanique au code'], [P.length, 'projets et PBL ce semestre'], [2431, 'tests automatisés sur Afyabora'], [669, 'mm : notre yacht au 1:40']];
   $('#facts').innerHTML = facts.map(([n, t]) => `<div><div class="v num" data-count="${n}">${n.toLocaleString('fr-FR')}</div><p>${esc(t)}</p></div>`).join('');
 
@@ -146,14 +197,14 @@
   stack.innerHTML = featured.map((id, i) => {
     const p = pById[id];
     return `<article class="pcard ${colors[i]}" style="--i:${i};--rot:${i % 2 ? -3 : 3}deg" data-p="${id}" data-cursor="Ouvrir" tabindex="0" role="button" aria-label="Ouvrir ${esc(p.titre)}">
-      <div>
+      <div class="pc-text">
         <div class="no">${esc(p.n)}</div>
         <h3>${esc(p.titre)}</h3>
         <p>${esc(p.resume)}</p>
         <div class="tags"><span>${esc(p.sous)}</span><span>${esc(p.periode)}</span></div>
         <span class="btn">Lire la fiche <span class="ar">→</span></span>
       </div>
-      <figure class="polar" style="margin:0"><span class="tape"></span><img src="${esc(p.cover)}" alt="" loading="lazy" class="${p.contain ? 'contain' : ''}"><span class="cap">${esc(caps[id])}</span></figure>
+      <figure class="polar" style="margin:0"><span class="tape"></span><div class="pimg"><img src="${esc(p.cover)}" alt="" loading="lazy" class="${p.contain ? 'contain' : ''}"></div><span class="cap">${esc(caps[id])}</span></figure>
     </article>`;
   }).join('');
   const cards = [...stack.children];
@@ -175,15 +226,13 @@
     $('#filters').querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
     let n = 0; idx.querySelectorAll('.row').forEach(r => { const ok = b.dataset.cat === 'Tous' || r.dataset.cat === b.dataset.cat; r.hidden = !ok; if (ok) n++; });
     $('#empty').hidden = n > 0;
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
   });
   $('#others').innerHTML = `<b>Et aussi, côté membres :</b> ${esc(D.autres)}.`;
-
-  // aperçu qui suit la souris
   const prev = $('#preview'), prevImg = prev.querySelector('img');
   let px = 0, py = 0, tx = 0, ty = 0;
   idx.addEventListener('mouseover', e => { const r = e.target.closest('.row'); if (r && r.dataset.img) { prevImg.src = r.dataset.img; prev.classList.add('on'); } });
   idx.addEventListener('mouseleave', () => prev.classList.remove('on'));
-  idx.addEventListener('mouseout', e => { if (!e.relatedTarget || !e.relatedTarget.closest('.row')) prev.classList.remove('on'); });
 
   /* ================= Yacht : calculateur + onglets ================= */
   const REAL = { loa: 26760, b: 6350, t: 1900, vol: 81.95, v: 16.46 };
@@ -204,7 +253,6 @@
   $('#lam').addEventListener('input', calc);
   [['#rhoDouce', 1000], ['#rhoMer', 1025]].forEach(([s, r]) => $(s).addEventListener('click', () => { rho = r; $('#rhoDouce').setAttribute('aria-pressed', r === 1000); $('#rhoMer').setAttribute('aria-pressed', r === 1025); calc(); }));
   calc();
-
   const thumb = (src, cap, set) => `<button class="thumb" type="button" data-lb="${esc(set)}" data-src="${esc(IMG + src)}" data-cap="${esc(cap)}" data-cursor="Zoom"><img src="${esc(IMG + src)}" alt="${esc(cap)}" loading="lazy"></button>`;
   $('#tablist').innerHTML = D.bateauTabs.map((t, i) => `<button role="tab" type="button" id="tab${i}" aria-selected="${i === 0}" tabindex="${i ? -1 : 0}" data-i="${i}">${esc(t.k)} · ${esc(t.t)}</button>`).join('');
   function showTab(i) {
@@ -234,10 +282,11 @@
 
   /* ================= Équipage ================= */
   $('#team').innerHTML = D.membres.map(m => `
-    <button class="mate reveal" type="button" data-m="${m.id}" data-cursor="Profil">
-      <div class="flip">
-        <div class="face front ${LOOK[m.id].bg}">${avatar(m.id)}</div>
-        <div class="face back">${m.photo ? `<img src="${esc(m.photo)}" alt="Portrait de ${esc(m.nom)}" loading="lazy">` : ''}<span>${esc(first(m))}</span></div>
+    <button class="mate" type="button" data-m="${m.id}" data-cursor="Profil">
+      <div class="mcard ${LOOK[m.id].bg}">
+        ${avatar(m.id)}
+        ${m.photo ? `<span class="pol"><img src="${esc(m.photo)}" alt="Portrait de ${esc(m.nom)}" loading="lazy"></span>` : ''}
+        <span class="say">${esc(LOOK[m.id].say)}</span>
       </div>
       <h3>${esc(m.nom)}</h3><p>${esc(m.role)}</p>
     </button>`).join('');
@@ -254,7 +303,7 @@
       try { navigator.clipboard.writeText(D.email).then(() => say('Adresse copiée'), fb); } catch (e) { fb(); }
     });
   } else {
-    $('#mailBox').innerHTML = `<a class="magnet" href="https://www.instagram.com/tumaini_group1/" target="_blank" rel="noopener" data-cursor="Go">Écrivez-nous sur Instagram ↗</a><p class="mono" style="margin-top:18px;font-size:14px;opacity:.75">E-mail du groupe : bientôt</p>`;
+    $('#mailBox').innerHTML = `<a class="magnet" href="https://www.instagram.com/tumaini_group1/" target="_blank" rel="noopener" data-cursor="Go">Écrivez-nous sur Instagram ↗</a><p class="mono" style="margin-top:18px;font-size:15px;opacity:.92">E-mail du groupe : bientôt</p>`;
   }
 
   /* ================= Panneau latéral ================= */
@@ -319,62 +368,58 @@
   lb.addEventListener('click', e => { if (e.target === lb || e.target.classList.contains('lb-stage')) lb.close(); });
   lb.addEventListener('keydown', e => { if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); });
 
-  /* ================= Clics délégués ================= */
   document.addEventListener('click', e => {
     if (e.target === drawer) return drawer.close();
     const t = e.target.closest('[data-lb]'); if (t) return openLb(t);
     const m = e.target.closest('[data-m]'), p = e.target.closest('[data-p]'), g = e.target.closest('[data-go]');
     if (m) openMember(m.dataset.m);
     else if (p) openProject(p.dataset.p);
-    else if (g) { drawer.close(); document.getElementById(g.dataset.go).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }
+    else if (g) { drawer.close(); const el = document.getElementById(g.dataset.go); window.KJ?.scrollTo ? window.KJ.scrollTo(el) : el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }
   });
   document.addEventListener('keydown', e => {
     const r = e.target.closest && e.target.closest('.row,.pcard');
     if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProject(r.dataset.p); }
   });
 
-  /* ================= Titres découpés + apparitions ================= */
+  /* ================= Titres découpés en lettres (animés par motion.js) ================= */
   document.querySelectorAll('.split').forEach(el => {
-    el.innerHTML = el.textContent.trim().split(/\s+/).map((w, i) => `<span class="w"><span style="transition-delay:${i * .08}s">${esc(w)}</span></span>`).join(' ');
+    const parts = el.textContent.trim().split(/\s+/);
+    el.innerHTML = parts.map(w => `<span class="w">${[...w].map(c => `<span class="c">${esc(c)}</span>`).join('')}</span>`).join(' ');
   });
-  if (!reduce && 'IntersectionObserver' in window) {
-    const els = [...document.querySelectorAll('.reveal,.split')].filter(el => el.getBoundingClientRect().top > innerHeight);
-    els.forEach(el => el.classList.add('pre'));
-    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.remove('pre'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
-    let k = 0; els.forEach(el => { if (el.matches('.mate,.calc')) el.style.transitionDelay = (k++ % 4) * 80 + 'ms'; io.observe(el); });
 
+  /* ================= Compteurs ================= */
+  if (!reduce && 'IntersectionObserver' in window) {
     const cio = new IntersectionObserver(es => es.forEach(e => {
       if (!e.isIntersecting) return; cio.unobserve(e.target);
       const el = e.target, end = +el.dataset.count, t0 = performance.now();
-      const tick = now => { const q = Math.min(1, (now - t0) / 1500); el.textContent = Math.round(end * (1 - Math.pow(1 - q, 4))).toLocaleString('fr-FR'); if (q < 1) requestAnimationFrame(tick); };
+      const tick = now => { const q = Math.min(1, (now - t0) / 1600); el.textContent = Math.round(end * (1 - Math.pow(1 - q, 4))).toLocaleString('fr-FR'); if (q < 1) requestAnimationFrame(tick); };
       requestAnimationFrame(tick);
     }), { threshold: .6 });
     document.querySelectorAll('[data-count]').forEach(el => cio.observe(el));
   }
 
-  /* ================= Curseur + aimants ================= */
+  /* ================= Curseur, aimants, regards ================= */
   const cur = $('#cursor'), dot = cur.querySelector('.c-dot'), ring = cur.querySelector('.c-ring'), label = $('#cLabel');
-  let cx = innerWidth / 2, cy = innerHeight / 2, rx = cx, ry = cy;
+  let cx = innerWidth / 2, cy = innerHeight * .4, rx = cx, ry = cy, hasPointer = false;
+  addEventListener('pointermove', e => { cx = e.clientX; cy = e.clientY; tx = cx; ty = cy; if (e.pointerType === 'mouse') hasPointer = true; }, { passive: true });
   if (fine && !reduce) {
     document.body.classList.add('has-cursor');
-    addEventListener('pointermove', e => { cx = e.clientX; cy = e.clientY; tx = cx; ty = cy; }, { passive: true });
     document.addEventListener('mouseover', e => {
       const t = e.target.closest('[data-cursor]');
       cur.classList.toggle('big', !!t); if (t) label.textContent = t.dataset.cursor;
     });
+    addEventListener('pointermove', e => {
+      document.querySelectorAll('.magnet,.btn.hot').forEach(m => {
+        const r = m.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+        m.style.translate = Math.hypot(dx, dy) < 140 ? `${dx * .25}px ${dy * .25}px` : '';
+      });
+    }, { passive: true });
   }
-  const magnets = () => document.querySelectorAll('.magnet,.btn.hot');
-  if (fine && !reduce) addEventListener('pointermove', e => {
-    magnets().forEach(m => {
-      const r = m.getBoundingClientRect(), mx2 = r.left + r.width / 2, my2 = r.top + r.height / 2;
-      const dx = e.clientX - mx2, dy = e.clientY - my2, d = Math.hypot(dx, dy);
-      m.style.transform = d < 140 ? `translate(${dx * .25}px,${dy * .25}px)` : '';
-    });
-  }, { passive: true });
+  // Chaque personnage suit la souris des yeux et penche la tête ; sans souris, il regarde autour de lui.
+  const faces = [...document.querySelectorAll('svg.av')].map(svg => ({ svg, pupils: svg.querySelector('.pupils'), head: svg.querySelector('.head'), x: 0, y: 0, r: 0, gx: 0, gy: 0 }));
+  if (!reduce) setInterval(() => { if (!hasPointer) faces.forEach(f => { f.gx = (Math.random() * 2 - 1); f.gy = (Math.random() * 1.4 - .7); }); }, 2200);
 
-  /* ================= Boucle d'animation ================= */
   function loop() {
-    // curseur
     if (fine && !reduce) {
       rx += (cx - rx) * .18; ry += (cy - ry) * .18;
       dot.style.transform = `translate(${cx}px,${cy}px) translate(-50%,-50%)`;
@@ -382,26 +427,36 @@
       px += (tx - px) * .12; py += (ty - py) * .12;
       prev.style.left = px + 'px'; prev.style.top = py + 'px';
     }
-    // bandeau
     if (!reduce) {
       vel *= .9; mx -= .6 + Math.abs(vel) * .5;
       const half = track.scrollWidth / 2; if (half && -mx > half) mx += half;
       track.style.transform = `translateX(${mx}px)`;
-    }
-    // manifeste
-    if (!reduce) {
+
       const r = scrub.getBoundingClientRect(), vh = innerHeight;
       const q = clamp((vh * .85 - r.top) / (r.height + vh * .35));
       const lit = Math.round(q * wds.length);
       wds.forEach((w, i) => { const on = i < lit; w.classList.toggle('lit', on); if (w.matches('.mark,.scrib')) w.classList.toggle('on', on); });
+
+      cards.forEach((c, i) => {
+        const nx = cards[i + 1]; if (!nx) return;
+        const a = c.getBoundingClientRect(), n = nx.getBoundingClientRect();
+        const k = clamp(1 - (n.top - a.top) / a.height);
+        c.style.scale = 1 - k * .07; c.style.filter = k > 0 ? `brightness(${1 - k * .2})` : '';
+      });
+
+      for (const f of faces) {
+        const b = f.svg.getBoundingClientRect();
+        if (b.bottom < 0 || b.top > innerHeight || !b.width) continue;
+        let gx = f.gx, gy = f.gy;
+        if (hasPointer) {
+          const dx = cx - (b.left + b.width / 2), dy = cy - (b.top + b.height * .42), d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 260);
+          gx = dx / d * k; gy = dy / d * k;
+        }
+        f.x += (gx - f.x) * .15; f.y += (gy - f.y) * .15; f.r += (gx * 6 - f.r) * .08;
+        f.pupils.setAttribute('transform', `translate(${(f.x * 2.8).toFixed(2)} ${(f.y * 2.4).toFixed(2)})`);
+        f.head.style.transform = `rotate(${f.r.toFixed(2)}deg)`;
+      }
     }
-    // pile de cartes : les précédentes reculent
-    if (!reduce) cards.forEach((c, i) => {
-      const nx = cards[i + 1]; if (!nx) return;
-      const r = c.getBoundingClientRect(), n = nx.getBoundingClientRect();
-      const q = clamp(1 - (n.top - r.top) / r.height);
-      c.style.transform = `scale(${1 - q * .06})`; c.style.filter = `brightness(${1 - q * .18})`;
-    });
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
