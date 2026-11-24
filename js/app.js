@@ -119,6 +119,8 @@
       </g></svg>`;
   }
 
+  window.KJAvatar = avatar;
+
   /* ================= Thème : clair par défaut ================= */
   const root = document.documentElement;
   try { if (localStorage.getItem('theme') === 'dark') root.dataset.theme = 'dark'; } catch (e) {}
@@ -190,8 +192,8 @@
   $('#facts').innerHTML = facts.map(([n, t]) => `<div><div class="v num" data-count="${n}">${n.toLocaleString('fr-FR')}</div><p>${esc(t)}</p></div>`).join('');
 
   /* ================= Projets : pile de cartes ================= */
-  const featured = ['bateau', 'imoca', 'afyabora', 'pbl3eee', 'pbl4eee', 'pbl5meo'];
-  const colors = ['violet', 'lime', 'coral', 'ink', 'sun', 'violet'];
+  const featured = ['imoca', 'bateau', 'pbl3eee', 'pbl4eee', 'pbl5meo', 'afyabora'];
+  const colors = ['lime', 'violet', 'ink', 'sun', 'violet', 'coral'];
   const caps = { bateau: 'GM > 0 : il tient debout !', imoca: 'notre IMOCA hybride', afyabora: 'lancée le 14 oct.', pbl3eee: 'la WBS de l\'enceinte', pbl4eee: 'système 1 en 3D', pbl5meo: 'la route des 9 outils' };
   const stack = $('#stack');
   stack.innerHTML = featured.map((id, i) => {
@@ -277,7 +279,7 @@
     <div class="sk-row" style="--c:${skc[i % 4]}">
       <h3>${esc(t)}</h3>
       <div class="chips">${items.map((x, j) => `<span style="--t:${((i + j) % 3 - 1) * 3}deg">${esc(x)}</span>`).join('')}</div>
-      <div class="from">↳ ${esc(ou)}</div>
+      <div class="from">Vu dans : ${esc(ou)}</div>
     </div>`).join('');
 
   /* ================= Équipage ================= */
@@ -303,7 +305,7 @@
       try { navigator.clipboard.writeText(D.email).then(() => say('Adresse copiée'), fb); } catch (e) { fb(); }
     });
   } else {
-    $('#mailBox').innerHTML = `<a class="magnet" href="https://www.instagram.com/tumaini_group1/" target="_blank" rel="noopener" data-cursor="Go">Écrivez-nous sur Instagram ↗</a><p class="mono" style="margin-top:18px;font-size:15px;opacity:.92">E-mail du groupe : bientôt</p>`;
+    $('#mailBox').innerHTML = `<p class="mono" style="font-size:15px;opacity:.92">E-mail du groupe : bientôt</p>`;
   }
 
   /* ================= Panneau latéral ================= */
@@ -333,18 +335,56 @@
        ${p.section ? `<div><button class="btn hot" type="button" data-go="${p.section}">Voir la section du yacht <span class="ar">→</span></button></div>` : ''}
        <div><h4>L'équipe</h4>${p.roles ? `<p class="txt" style="margin-bottom:14px;color:var(--muted)">${esc(p.roles)}</p>` : ''}${people(p)}</div>`);
   }
-  function openMember(id) {
+  function openMember(id, tab = 'about') {
     const m = byId[id]; if (!m) return;
-    const row = (k, v) => v ? `<div><h4>${k}</h4><p class="txt">${esc(v)}</p></div>` : '';
-    const projs = P.filter(p => p.lead === id || (Array.isArray(p.equipe) && p.equipe.includes(id)));
+    const cited = P.filter(p => p.lead === id || (Array.isArray(p.equipe) && p.equipe.includes(id)));
+    const tabs = [['about', 'À propos'], ['path', 'Parcours'], ['skills', 'Compétences'], ['work', 'Projets']];
     open(LOOK[id].bg, 'Équipage',
       `<div class="d-member"><div class="pic">${m.photo ? `<img src="${esc(m.photo)}" alt="Portrait de ${esc(m.nom)}">` : avatar(id)}</div>
-        <div><div class="kicker">${esc(m.role)}</div><h2 id="dTitle">${esc(m.nom)}</h2>${m.surnom ? `<p class="hand" style="font-size:30px;margin-top:8px">« ${esc(m.surnom)} »</p>` : ''}<p class="lead">${esc(m.bio)}</p></div></div>`,
-      `${m.skills.length ? `<div><h4>Compétences</h4><div class="people">${m.skills.map(s => `<span>${esc(s)}</span>`).join('')}</div></div>` : ''}
-       ${row('Parcours', m.parcours)}${row('Stages et engagements', m.engagements)}${row('Langues', m.langues)}
-       ${projs.length ? `<div><h4>Rôle cité dans</h4><div class="people">${projs.map(p => `<button type="button" class="txt" data-p="${p.id}">${esc(p.titre)}</button>`).join('')}</div></div>` : ''}
-       <p class="hand" style="font-size:24px;color:var(--muted)">membre de tous les PBL du Groupe 1</p>`);
+        <div><div class="kicker">${esc(m.role)}</div><h2 id="dTitle">${esc(m.nom)}</h2>${m.surnom ? `<p class="hand" style="font-size:30px;margin-top:8px">« ${esc(m.surnom)} »</p>` : ''}<p class="lead">${esc(m.bio)}</p></div></div>
+       <div class="mtabs" role="tablist" aria-label="Profil de ${esc(first(m))}">${tabs.map(([k, l]) => `<button type="button" role="tab" data-mt="${k}" data-mid="${id}" aria-selected="${k === tab}">${l}</button>`).join('')}</div>`,
+      `<div id="mPanel"></div>`);
+    showMemberTab(id, tab, cited);
   }
+  function showMemberTab(id, tab, cited) {
+    const m = byId[id];
+    cited = cited || P.filter(p => p.lead === id || (Array.isArray(p.equipe) && p.equipe.includes(id)));
+    document.querySelectorAll('.mtabs [data-mt]').forEach(b => b.setAttribute('aria-selected', b.dataset.mt === tab));
+    const panel = $('#mPanel'); let html = '';
+    const row = (k, v) => v ? `<div><h4>${k}</h4><p class="txt">${esc(v)}</p></div>` : '';
+    if (tab === 'about') html = `<p class="about-txt">${esc(m.apropos || m.bio)}</p>
+      ${m.skills.length ? `<div><h4>En quelques mots</h4><div class="people">${m.skills.map(s => `<span>${esc(s)}</span>`).join('')}</div></div>` : ''}
+      ${row('Langues', m.langues)}${row("Centres d'intérêt", m.interets)}
+      <button class="btn hot" type="button" data-mt="path" data-mid="${id}">Voir son parcours <span class="ar">→</span></button>`;
+    if (tab === 'path') html = `<div class="road" id="road"><svg class="road-svg" aria-hidden="true"><path class="road-bed"/><path class="road-line"/></svg>
+      ${(m.parcours || []).map(([d, t, x], i) => `<div class="stop ${i % 2 ? 'r' : 'l'}" style="--d:${i * .12 + .2}s"><span class="pin"><span class="pin-n">${i + 1}</span></span><div class="stop-card"><span class="when">${esc(d || 'Étape ' + (i + 1))}</span><h5>${esc(t)}</h5><p>${esc(x)}</p></div></div>`).join('')}
+      <div class="stop end ${(m.parcours || []).length % 2 ? 'r' : 'l'}" style="--d:${(m.parcours || []).length * .12 + .2}s"><span class="pin"><span class="pin-n">?</span></span><div class="stop-card"><span class="when">La suite</span><h5>À écrire ensemble</h5><p>Stage, projet, rencontre : la prochaine étape commence peut-être ici.</p></div></div></div>`;
+    if (tab === 'skills') html = (m.competences || []).length
+      ? `<div class="skill-groups">${m.competences.map(([g, items], i) => `<div class="sg" style="--d:${i * .08}s"><h4>${esc(g)}</h4><div class="people">${items.map(s => `<span>${esc(s)}</span>`).join('')}</div></div>`).join('')}</div>`
+      : `<p class="hand" style="font-size:26px;color:var(--muted)">Compétences à venir : la fiche arrive bientôt.</p>`;
+    if (tab === 'work') {
+      const others = P.filter(p => !cited.includes(p) && p.equipe === 'all');
+      html = `${cited.length ? `<div><h4>Rôle cité dans</h4><div class="people">${cited.map(p => `<button type="button" class="txt" data-p="${p.id}">${esc(p.titre)}</button>`).join('')}</div></div>` : ''}
+        <div><h4>Avec tout le Groupe 1</h4><div class="people">${others.map(p => `<button type="button" class="txt" data-p="${p.id}">${esc(p.n)} · ${esc(p.titre)}</button>`).join('')}</div></div>`;
+    }
+    panel.innerHTML = `<div class="mpanel">${html}</div>`;
+    if (tab === 'path') requestAnimationFrame(() => drawRoad());
+  }
+  // route sinueuse qui relie les étapes du parcours
+  function drawRoad() {
+    const road = $('#road'); if (!road) return;
+    const svg = road.querySelector('svg'), rb = road.getBoundingClientRect();
+    const pts = [...road.querySelectorAll('.pin')].map(p => { const r = p.getBoundingClientRect(); return [r.left + r.width / 2 - rb.left, r.top + r.height / 2 - rb.top]; });
+    if (pts.length < 2) return;
+    svg.setAttribute('viewBox', `0 0 ${rb.width} ${rb.height}`);
+    let d = `M${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], my = (y0 + y1) / 2; d += ` C${x0} ${my} ${x1} ${my} ${x1} ${y1}`; }
+    svg.querySelectorAll('path').forEach(p => p.setAttribute('d', d));
+    const len = svg.querySelector('.road-bed').getTotalLength();
+    svg.style.setProperty('--len', len);
+    road.classList.remove('go'); void road.offsetWidth; road.classList.add('go');
+  }
+  addEventListener('resize', () => { if ($('#road')) drawRoad(); });
   $('#dClose').addEventListener('click', () => drawer.close());
 
   /* ================= Visionneuse ================= */
@@ -371,6 +411,7 @@
   document.addEventListener('click', e => {
     if (e.target === drawer) return drawer.close();
     const t = e.target.closest('[data-lb]'); if (t) return openLb(t);
+    const mt = e.target.closest('[data-mt]'); if (mt) { showMemberTab(mt.dataset.mid, mt.dataset.mt); if (mt.classList.contains('btn')) drawer.scrollTo({ top: $('.mtabs').offsetTop - 70, behavior: 'smooth' }); return; }
     const m = e.target.closest('[data-m]'), p = e.target.closest('[data-p]'), g = e.target.closest('[data-go]');
     if (m) openMember(m.dataset.m);
     else if (p) openProject(p.dataset.p);

@@ -18,7 +18,7 @@
   const onView = (trig, fn) => { const el = typeof trig === 'string' ? document.querySelector(trig) : trig; if (!el) return fn(); (el.__kj = el.__kj || []).push(fn); pending.add(el); io.observe(el); };
   // filet de sécurité : tout ce qui est déjà passé à l'écran s'affiche, même si l'observateur a raté le moment
   setInterval(() => pending.forEach(el => { if (el.getBoundingClientRect().top < innerHeight * .95) fire(el); }), 700);
-  const reveal = (targets, vars, trig) => { const tw = gsap.from(targets, { ...vars, paused: true }); onView(trig, () => tw.play()); };
+  const reveal = (targets, vars, trig) => { const tw = gsap.from(targets, { clearProps: 'transform,opacity', ...vars, paused: true }); onView(trig, () => tw.play()); };
 
   /* ---------- défilement doux ---------- */
   let lenis = null;
@@ -56,7 +56,7 @@
   gsap.from('#crew button svg', { yPercent: 120, duration: 1, ease: 'back.out(1.8)', stagger: .07, delay: 2.1 });
 
   /* ---------- blocs de couleur : ils s'ouvrent à pleine largeur en arrivant ---------- */
-  $$('.slab, .work, .team-sec, footer').forEach(sec => {
+  $$('.slab, .work, .team-sec').forEach(sec => {
     gsap.fromTo(sec, { clipPath: `inset(0% ${mobile ? 3 : 6}% 0% ${mobile ? 3 : 6}% round 80px 80px 0px 0px)` },
       { clipPath: 'inset(0% 0% 0% 0% round 44px 44px 0px 0px)', ease: 'none', scrollTrigger: { trigger: sec, start: 'top bottom', end: 'top 30%', scrub: .5 } });
   });
@@ -99,7 +99,7 @@
 
   /* ---------- journal + contact + pied ---------- */
   $$('.log-row').forEach((r, i) => reveal(r, { x: 80, opacity: 0, duration: .8, ease: 'power3.out', delay: (i % 3) * .06, clearProps: 'transform,opacity' }, r));
-  reveal('.magnet', { scale: 0, rotate: -90, duration: 1.4, ease: 'elastic.out(1, .5)', }, '.magnet');
+  reveal('.pit', { y: 80, scale: .96, opacity: 0, duration: 1, ease: 'power3.out' }, '.pit');
   reveal('#wordmark .ch', { yPercent: 110, rotate: 10, duration: 1, ease: 'power4.out', stagger: .045, }, 'footer');
 
   // recalcul après chargement des images et des polices
