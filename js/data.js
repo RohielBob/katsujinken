@@ -35,11 +35,15 @@ window.PORTFOLIO = {
       competences:[["Atouts",["Gestion de projet","CAO 3D","Mécanique"]]],
       parcours:[["","Complexe scolaire La Borne UPN","École primaire et secondaire."],["","Centre hospitalier La Borne UPN","Stage humanitaire."],["","ACGT, aréna de Kinshasa","Stage sur le chantier de construction de l'aréna."],["2025","ULC-ICAM","Bachelor international, niveau B1."],["2026","Projet bateau et drone d'éclairage","Réalisation du yacht de croisière et d'un drone d'éclairage."]],
       interets:"Ingénierie, automobile, sport" },
-    { id:"benjamin", nom:"Benjamin Irenge", role:"Membre de l'équipe", photo:"img/benjamin.jpg",
-      bio:"Membre du Groupe 1 sur l'ensemble des PBL du semestre.",
-      apropos:"Membre du Groupe 1 sur tous les PBL du semestre, du projet bateau au PBL d'anglais. Sa fiche détaillée arrive bientôt.",
-      skills:[], competences:[],
-      parcours:[["2025","ULC-ICAM","Bachelor international, formation d'ingénieurs généralistes."],["2026","Les PBL du Groupe 1","IMOCA 60, projet bateau, PBL 3 et 4 EEE, PBL d'anglais."]] },
+    { id:"benjamin", nom:"Benjamin Irenge Nshangalume", role:"Mécanique, électronique et applis", photo:"img/benjamin.jpg",
+      bio:"Passionné par la conception mécanique, l'électronique et le développement d'applications. Il aime mener un projet de bout en bout, de la CAO au câblage et au code.",
+      apropos:"Étudiant en B1 de polytechnique générale, Benjamin aime les projets concrets menés de bout en bout : la modélisation CAO, puis le câblage, puis la programmation, toujours en équipe. Il cite trois qualités : le sens des priorités, l'esprit d'équipe et l'autonomie.",
+      skills:["SolidWorks","Arduino","LTspice","MATLAB / Simulink","Python","Git / GitHub"],
+      competences:[["Conception",["Gestion de projet","SolidWorks","Certification 3DSwymer"]],["Électronique",["Arduino","Programmation de microcontrôleurs","Soudure","Multimètre","Maintenance"]],["Simulation",["LTspice","Tinkercad","MATLAB","Simulink"]],["Programmation",["Python","JavaScript","HTML / CSS","Dart","Git / GitHub"]],["Bureautique",["Word","Excel","PowerPoint"]]],
+      parcours:[["2011 – 2018","Complexe scolaire Umoja, Uvira","Maternelle et primaire."],["2018 – 2024","Collège Alfajiri, Bukavu","Études secondaires."],["2025 – 2026","ULC-ICAM, bac préparatoire","Faculté des sciences et technologies, Kinshasa."],["2026 – 2027","ULC-ICAM, Bachelor international B1","Polytechnique générale."],["Expérience","Barman (environ 6 mois) et stage humanitaire","Service client, travail sous pression, rigueur."],["Projets","Drones, applis, Traffic Light","Drone de livraison médicale (CAO SolidWorks et câblage), Afyabora, application de gestion d'une institution médicale, Traffic Light, application de contrôle à distance, application de boussole à capteur magnétique."]],
+      langues:"Français et swahili (professionnel), lingala (courant), anglais (B1)",
+      interets:"Musique et instruments, chant, art, football, basket, tennis, haltérophilie, technologie, machines industrielles",
+      liens:[["LinkedIn","https://www.linkedin.com/in/benjamin-irenge-800014393"]] },
     { id:"chancelier", nom:"Chancelier Kabangu", surnom:"Chance", role:"CAO et développement", photo:"img/chancelier.jpg",
       bio:"Certifié en CAO (3DSwymer), il code aussi en Python, JavaScript et Dart. Gardien du temps en PBL 4 EEE.",
       apropos:"Trilingue, autonome et avec le sens des priorités, Chancelier fait le pont entre la conception 3D et le code. Avant l'école d'ingénieur, il a passé deux ans derrière un bar : un vrai sens du service et du rythme.",
@@ -168,7 +172,7 @@ window.PORTFOLIO = {
       equipe:"all" }
   ],
 
-  autres:"Drone de livraison (Isaa, Chancelier) · Traffic Light, régulation du trafic au rond-point Mandela (Isaa, Chancelier, avec l'équipe Warriors) · Composites pour l'automobile (Angelo) · Applications de suivi de capteurs et de contrôle à distance (Isaa, Chancelier) · Drone d'éclairage (Ben)",
+  autres:"Drone de livraison (Isaa, Chancelier, Benjamin) · Traffic Light, régulation du trafic au rond-point Mandela (Isaa, Chancelier, Benjamin, avec l'équipe Warriors) · Composites pour l'automobile (Angelo) · Applications de suivi de capteurs et de contrôle à distance (Isaa, Chancelier, Benjamin) · Drone d'éclairage (Ben)",
 
   bateauTabs: [
     { k:"MEC", t:"Dimensionnement et maquette", p:["Méthode de la spirale de projet : cahier des charges, formes, masses, stabilité, résistance, structure, propulsion, puis on recommence. Les calculs sont faits en Python, avec un échantillonnage inspiré de l'ISO 12215-5."],

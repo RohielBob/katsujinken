@@ -201,8 +201,8 @@ h1,h2,h3,h4,p{margin:0}
 /* ---------- projets : pile de cartes ---------- */
 .work{position:relative;z-index:2;background:var(--bg);border-radius:var(--r) var(--r) 0 0;margin-top:calc(var(--r) * -1);padding-block:120px 160px;transition:background-color .5s}
 .stack{display:flex;flex-direction:column;gap:28px}
-.pcard{position:sticky;top:calc(96px + var(--i) * 16px);border-radius:32px;padding:clamp(22px,3.4vw,48px);display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(20px,3vw,48px);align-items:center;min-height:min(70vh,560px);transform-origin:50% 0;box-shadow:0 -10px 40px -20px rgb(20 17 43 / .35);will-change:transform;cursor:pointer}
-@media (max-width:860px){.pcard{grid-template-columns:minmax(0,1fr);min-height:0;position:relative;top:auto}}
+.pcard{position:sticky;transform-origin:50% 0;top:calc(96px + var(--i) * 16px);border-radius:32px;padding:clamp(22px,3.4vw,48px);display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(20px,3vw,48px);align-items:center;min-height:min(70vh,560px);transform-origin:50% 0;box-shadow:0 -10px 40px -20px rgb(20 17 43 / .35);will-change:transform;cursor:pointer}
+@media (max-width:860px){.pcard{grid-template-columns:minmax(0,1fr);min-height:0;top:calc(76px + var(--i) * 10px);gap:16px;padding:22px 20px;border-radius:26px}.pcard .no{font-size:46px}.pcard h3{font-size:clamp(22px,6.4vw,34px);margin:8px 0}.pcard p{font-size:15px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}.pcard .tags{margin:14px 0 16px}.pcard .tags span:nth-child(2){display:none}.pcard .polar{width:50%;padding:7px 7px 30px;justify-self:end}.pcard .polar .cap{font-size:16px;bottom:8px}.pcard .pc-text .btn{position:absolute;left:20px;bottom:24px;height:42px;padding:0 16px;font-size:14px}.polar .cap{font-size:19px}}
 .pcard .no{font:400 clamp(70px,9vw,130px)/.8 var(--f-display);opacity:.95}
 .pcard h3{font:400 clamp(32px,4.2vw,64px)/.95 var(--f-display);text-transform:uppercase;margin:18px 0 16px;letter-spacing:-.01em}
 .pcard p{font-size:clamp(16px,1.3vw,19px);max-width:44ch;line-height:1.5}
@@ -502,6 +502,8 @@ dialog.lb::backdrop{background:transparent}
 .ball.face svg{width:100%;height:auto;display:block}
 .pit.static{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-content:flex-end;padding:56px 20px 20px;height:auto}
 .pit.static .ball{position:relative;transform:none}
+.people a.txt-link{display:inline-flex;align-items:center;padding:9px 14px;border-radius:999px;border:2px solid var(--fg);color:var(--fg);text-decoration:none;font:600 14px/1 var(--f-body);transition:background-color .25s,color .25s}
+.people a.txt-link:hover{background:var(--fg);color:var(--bg)}
 </style>
 
 <div id="loader" aria-hidden="true"><div class="ld-k"><span>活</span><span>人</span><span>剣</span></div><div class="ld-t">Katsujinken · Groupe 1 · ULC-ICAM</div><div class="ld-bar"></div></div>

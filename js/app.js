@@ -17,7 +17,7 @@
     rohiel:     { skin: '#6e4026', hair: 'fade', top: '#a9b4ba', cut: 'polo', acc: 'headphones', face: 'mustache', bg: 'coral', say: 'J\'écris le code.' },
     arnold:     { skin: '#8a5634', hair: 'short', top: '#8a5a2b', cut: 'bands', bg: 'sun', say: 'Méca et électronique !' },
     ben:        { skin: '#5e3620', hair: 'short', top: '#a8d8ff', cut: 'vest', acc: 'hardhat', bg: 'violet', say: 'Direction le chantier.' },
-    benjamin:   { skin: '#4f2c1a', hair: 'short', top: '#c9a46a', cut: 'stripes', face: 'goatee', bg: 'lime', say: 'Présent sur tous les PBL.' },
+    benjamin:   { skin: '#4f2c1a', hair: 'short', top: '#c9a46a', cut: 'stripes', face: 'goatee', bg: 'lime', say: 'CAO, câblage, code.' },
     chancelier: { skin: '#5a321e', hair: 'full', top: '#ffffff', cut: 'tie', bg: 'coral', say: 'CAO, certifié.' },
     isaa:       { skin: '#8b5535', hair: 'bun', top: '#1f1b2e', cut: 'sweater', acc: 'earrings', bg: 'sun', say: 'On s\'organise ?' },
     severina:   { skin: '#4a2a1a', hair: 'bun', top: '#2a2438', cut: 'tee', acc: 'glasses', bg: 'violet', say: 'Je prends les notes.' }
@@ -355,6 +355,7 @@
     if (tab === 'about') html = `<p class="about-txt">${esc(m.apropos || m.bio)}</p>
       ${m.skills.length ? `<div><h4>En quelques mots</h4><div class="people">${m.skills.map(s => `<span>${esc(s)}</span>`).join('')}</div></div>` : ''}
       ${row('Langues', m.langues)}${row("Centres d'intérêt", m.interets)}
+      ${(m.liens || []).length ? `<div><h4>En ligne</h4><div class="people">${m.liens.map(([l, u]) => `<a class="txt-link" href="${esc(u)}" target="_blank" rel="noopener">${esc(l)} ↗</a>`).join('')}</div></div>` : ''}
       <button class="btn hot" type="button" data-mt="path" data-mid="${id}">Voir son parcours <span class="ar">→</span></button>`;
     if (tab === 'path') html = `<div class="road" id="road"><svg class="road-svg" aria-hidden="true"><path class="road-bed"/><path class="road-line"/></svg>
       ${(m.parcours || []).map(([d, t, x], i) => `<div class="stop ${i % 2 ? 'r' : 'l'}" style="--d:${i * .12 + .2}s"><span class="pin"><span class="pin-n">${i + 1}</span></span><div class="stop-card"><span class="when">${esc(d || 'Étape ' + (i + 1))}</span><h5>${esc(t)}</h5><p>${esc(x)}</p></div></div>`).join('')}
@@ -478,11 +479,16 @@
       const lit = Math.round(q * wds.length);
       wds.forEach((w, i) => { const on = i < lit; w.classList.toggle('lit', on); if (w.matches('.mark,.scrib')) w.classList.toggle('on', on); });
 
+      // pile de cartes : la carte recouverte bascule en arrière, rétrécit et s'assombrit ;
+      // la suivante arrive inclinée puis se pose à plat en atteignant sa place
       cards.forEach((c, i) => {
-        const nx = cards[i + 1]; if (!nx) return;
-        const a = c.getBoundingClientRect(), n = nx.getBoundingClientRect();
-        const k = clamp(1 - (n.top - a.top) / a.height);
-        c.style.scale = 1 - k * .07; c.style.filter = k > 0 ? `brightness(${1 - k * .2})` : '';
+        const a = c.getBoundingClientRect(), nx = cards[i + 1];
+        const stick = parseFloat(getComputedStyle(c).top) || 0;
+        const k = nx ? clamp(1 - (nx.getBoundingClientRect().top - a.top) / a.height) : 0;
+        const e = clamp((a.top - stick) / (innerHeight * .7));
+        const tilt = (i % 2 ? 1 : -1) * 6 * e;
+        c.style.transform = `perspective(1400px) translateY(${(-k * 18).toFixed(1)}px) rotateX(${(k * 9).toFixed(2)}deg) rotate(${tilt.toFixed(2)}deg) scale(${(1 - k * .12).toFixed(3)})`;
+        c.style.filter = k > .01 ? `brightness(${(1 - k * .35).toFixed(3)}) saturate(${(1 - k * .3).toFixed(3)})` : '';
       });
 
       for (const f of faces) {
